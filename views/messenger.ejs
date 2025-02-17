@@ -1,0 +1,80 @@
+<% include ./partials/header.ejs %>
+    <div class="w-full min-h-screen bg-zinc-900 px-4">
+        <div class="flex justify-between items-center py-2 px-2">
+            <div class="text-sm text-white" onclick="window.history.back()"><i
+                    class="ri-arrow-left-s-line text-2xl"></i></div>
+            <h2 class=" text-base text-white">
+                <%=user.username%>
+            </h2>
+            <div></div>
+        </div>
+        <div class="border-2 border-zinc-800 flex items-center justify-between px-2 py-1 my-2 rounded-md">
+            <i class="text-white ri-search-line" name="username"></i>
+            <input class="ml-1 w-full bg-zinc-900 outline-none text-zinc-400" id="search-bar" type="text"
+                placeholder="search chat">
+        </div>
+        <div id="chats">
+            <% senders.reverse().map((data,index)=>{ %>
+                <% data.user.map((userdata)=>{ %>
+                    <% if(userdata.username !==user.username){ %>
+                        <a href="/send/message/<%=userdata._id%>" class="outline-none">
+                            <div class="text-white flex items-center gap-4 mt-5">
+                                <div class="image w-10 h-10 flex-shrink-0 overflow-hidden rounded-full bg-sky-100">
+                                    <img class="h-full w-full object-cover"
+                                        src="/images/uploads/<%=userdata.profileImage%>" alt="">
+                                </div>
+                                <div class="text flex flex-col justify-start">
+                                    <h3>
+                                        <%=userdata.username%>
+                                            <h3>
+                                                <h4 class="text-sm opacity-30 line-clamp-1">
+                                                    <%=data.messages[data.messages.length - 1].message%>
+                                                </h4>
+                                </div>
+                            </div>
+                        </a>
+                        <% } %>
+                            <% }) %>
+                                <% }) %>
+
+        </div>
+        <div id="search-chat"></div>
+    </div>
+    <script>
+        let search = document.getElementById("search-bar");
+        search.addEventListener('focus', () => {
+            document.getElementById('chats').style.display = "none";
+            search.addEventListener('input', async function () {
+                if (search.value.length) {
+                    let { data } = await axios.get(`/chat/user/${search.value}`);
+                    let clutter = '';
+                    data.map((chat, index) => {
+                        chat.user.map((user, index) => {
+                            if (user.username !== '<%=user.username%>') {
+                                clutter += `<a href="/send/message/${user._id}" class="outline-none">
+                    <div class="text-white flex items-start gap-4 mt-5">
+                        <div class="image w-10 h-10 overflow-hidden rounded-full bg-sky-100">
+                            <img class="h-full w-full object-cover" src="/images/uploads/${user.profileImage}" alt="">
+                        </div>
+                        <div class="text flex flex-col justify-start">
+                            <h3>${user.username}<h3>
+                            <h4 class="text-sm opacity-30 ">${chat.messages[chat.messages.length - 1].message}</h4>
+                        </div>
+                    </div>
+                </a>`
+                            }
+                        })
+                    });
+                    document.getElementById('search-chat').innerHTML = clutter;
+                }
+            })
+        })
+        search.addEventListener('blur', () => {
+            if (!search.value.length) {
+                document.getElementById('chats').style.display = "block";
+                document.getElementById('search-chat').innerHTML = ""
+            }
+        })
+
+    </script>
+    <% include ./partials/footer.ejs %>

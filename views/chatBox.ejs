@@ -1,0 +1,137 @@
+<% include ./partials/header.ejs %>
+
+    <div class=" bg-zinc-900 h-screen sm:h-[700px] overflow-y-hidden w-full py-4 text-white">
+        <div class="flex justify-start px-4 gap-2 items-center fixed top-0 py-2 bg-zinc-900 z-50 w-full">
+            <div class="text-sm text-white" onclick="window.history.back()"><i
+                    class="ri-arrow-left-s-line text-2xl"></i></div>
+            <h2 class="leading-none text-sm">
+                <div class="flex justify-start items-center gap-4">
+                    <a <% if(sender.story.length){ %>
+                        href="/story/<%=sender._id%>"
+                            class="w-8 h-8 flex items-center justify-center rounded-full overflow-hidden gradient
+                            bg-gradient-to-r from-purple-700 to-orange-500 "
+                            <% }else{ %>
+                                class="w-10 h-10 flex items-center justify-center bg-transparent rounded-full
+                                overflow-hidden"
+                                <% } %>
+                                    >
+                                    <img class="h-[90%] w-[90%] rounded-full object-cover"
+                                        src="/images/uploads/<%=sender.profileImage%>" alt="">
+                    </a>
+                    <div class="flex flex-col justify-center ">
+                        <a href="/profile/otherUser/<%=sender.username%>">
+                            <p class="text-sm">
+                                <%=sender.username%>
+                            </p>
+                        </a>
+                        <p class="text-xs text-gray-600" id="activity">
+                            <%=sender.name%>
+                        </p>
+                    </div>
+                </div>
+        </div>
+        <div class=" h-[600px] my-6 justify-end flex flex-col py-4 px-4 w-full" id="chat">
+            <div class="w-full flex flex-col gap-2  items-between overflow-y-scroll chat-box" id="chat-box">
+                <%if(messages){%>
+                <% messages.messages.map((data,index)=>{ %>
+                    <% if(data.sender.toString() === user._id.toString()){ %>
+                      <div
+                            class="flex items-end py-1 gap-4" style="direction: rtl;">
+                             <img class="h-8 w-8 rounded-full object-cover" src="/images/uploads/<%=user.profileImage%>" alt="">
+                             <p class="px-2 py-1 text-left max-w-[65%] w rounded-[20px] bg-violet-600"><%=data.message%></p>
+                         </div>  
+                         <% }else{ %>
+                        <div class="flex py-1 items-end gap-4">
+                            <img class="h-8 w-8 rounded-full object-cover" src="/images/uploads/<%=sender.profileImage%>" alt="">
+                            <p class="px-2 py-1  max-w-[65%] rounded-[20px] bg-violet-600"><%=data.message%></p>
+                        </div>
+                        <% }})} %>
+        </div>
+    </div>
+    <div class="flex items-center gap-4 bg-zinc-900 pb-4 flex w-full px-4 fixed bottom-0 w-full">
+        <input
+            class="rounded-full w-full border border-gray-400 py-2 px-4 text-white flex-grow-1 bg-zinc-900 outline-none"
+            type="text" name="message" placeholder="Message" id="message" />
+        <button id="send-btn">
+            <i class="ri-send-plane-fill text-3xl text-sky-600"></i>
+        </button>
+    </div>
+    </div>
+    <script>
+        let chatBox = document.getElementById('chat-box');
+        chatBox.scrollTo(0,chatBox.scrollHeight);
+
+        document.getElementById('message').addEventListener('keydown', (event)=>{
+            if(event.keyCode === 13){
+                document.getElementById('send-btn').click();
+            }
+        });
+
+        document.getElementById('send-btn').addEventListener('click', function () {
+            let value = document.getElementById('message').value;
+            data = {
+                name: '<%=user.username%>',
+                message: value
+            }
+            socket.emit('message', data);
+            if (data.name === '<%=user.username%>') {
+                axios({
+                    url: '/send/message',
+                    method: 'post',
+                    data: {
+                        senderid: '<%=sender._id%>',
+                        message: data.message,
+                        type: "SEND"
+                    }
+                }).catch(e => console.log(e))
+            }
+            else if (data.name === '<%=sender.username%>') {
+                axios({
+                    url: '/send/message',
+                    method: 'post',
+                    data: {
+                        senderid: '<%=sender._id%>',
+                        message: data.message,
+                        type: "GET"
+                    }
+                }).catch(e => {
+                    console.log(e);
+                });
+            }
+            document.getElementById('message').value = '';
+        });
+        
+        socket.on('message', data => {
+            let clutter = '';
+            if (data.name === '<%=user.username%>') {
+                clutter += `<div class="flex items-end py-1 gap-4" style="direction: rtl;">
+                             <img class="h-8 w-8 rounded-full object-cover" src="/images/uploads/<%=user.profileImage%>" alt="">
+                             <p class="px-2 py-1 text-left max-w-[65%] w rounded-[20px] bg-violet-600">${data.message}</p>
+                             </div>`;
+            }
+            else if (data.name === '<%=sender.username%>') {
+                clutter += `<div class="flex py-1 items-end gap-4">
+                        <img class="h-8 w-8 rounded-full object-cover" src="/images/uploads/<%=sender.profileImage%>" alt="">
+                        <p class="px-2 py-1  max-w-[65%] rounded-[20px] bg-violet-600">${data.message}</p>
+                        </div>`;
+            }
+            chatBox.innerHTML += clutter;
+            chatBox.scrollTo(0,chatBox.scrollHeight);
+        })
+        socket.on('connected', data => {
+            if(data.name === '<%=sender.username%>' ){
+             document.getElementById('activity').innerHTML= data.activity;   
+            }
+            socket.emit('connected' , '<%=user.username%>');
+        });
+        socket.emit('disconnected','<%=user.username%>' )
+        socket.on('disconnected', data => {
+            if(data.name === '<%=sender.username%>' ){
+             document.getElementById('activity').innerHTML= data.activity;   
+            }
+            socket.emit('disconnected','<%=user.username%>' )
+        });
+    </script>
+
+
+    <% include ./partials/footer.ejs %>

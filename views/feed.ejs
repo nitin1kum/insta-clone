@@ -1,0 +1,181 @@
+<% include ./partials/header.ejs %>
+  <div class="w-full min-h-screen bg-zinc-900 text-white py-5">
+    <div class="w-full px-4 flex items-center justify-between fixed top-0 py-4 bg-zinc-900 z-50">
+      <img class="w-1/4" src="/images/logo.png" alt="">
+      <div class="icons -mt-2 flex gap-5 items-center">
+        <a href="/notification"><i class="text-[1.4rem] ri-heart-3-line"></i></a>
+        <a href="/messenger"><i class="text-[1.4rem] ri-messenger-line"></i></a>
+      </div>
+    </div>
+
+    <div class=" mt-6 story px-3 flex gap-3 overflow-auto mt-5 border-b-[1px] border-gray-400/50  py-4">
+
+      <div class="circle user-story flex-shrink-0">
+        <div <% if(user.story.length){ %>
+          class="gradient relative w-12 h-12 bg-sky-100 rounded-full bg-gradient-to-r from-purple-700
+          to-orange-500 flex items-center justify-center"
+          <% }else{ %>
+            class=" relative w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center"
+            <% } %>
+              >
+              <a class="inner w-[92%] h-[92%] rounded-full overflow-hidden" <% if(user.story.length){ %>
+                href="/story/<%=user._id%>"
+                  <% }else{ %>
+                    href="/upload/story"
+                    <% } %>
+                      >
+                      <img class="w-full h-full object-cover" src="/images/uploads/<%=user.profileImage%>" alt="">
+              </a>
+              <a class="absolute bottom-1 right-1" href="/upload/story">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="black" viewBox="0 0 24 24" strokeWidth={3}
+                  stroke="currentColor" class="w-4 h-4  rounded-full font-medium bg-sky-600">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
+                </svg>
+              </a>
+        </div>
+      </div>
+      <% if(user.following){ %>
+        <% user.following.map((data,index)=>{ %>
+          <% if(data.story.length){ %>
+            <div class="circle others-story flex-shrink-0">
+              <div
+                class="gradient w-12 h-12 bg-sky-100 rounded-full bg-gradient-to-r from-purple-700 to-orange-500 flex items-center justify-center">
+                <a class="inner w-[92%] h-[92%] rounded-full overflow-hidden" href="/story/<%=data._id%>">
+                  <img class="w-full h-full object-cover" src="/images/uploads/<%=data.profileImage%>" alt="">
+                </a>
+              </div>
+            </div>
+            <% }})} %>
+
+    </div>
+
+    <div class="posts mb-10">
+      <% post.reverse().forEach((data,index)=>{ %>
+        <% if(user.following.indexOf(data.user.toString()) !== -1 || user.username === data.user.username){ %>
+          <div class="post mt-10 w-full min-h-[50vh]">
+            <div class="title px-2 flex items-center gap-2">
+              <a <% if(data.user.story.length){ %>
+                href="/story/<%=data.user._id%>"
+                  class="w-9 h-9 flex items-center justify-center rounded-full overflow-hidden gradient
+                  bg-gradient-to-r from-purple-700 to-orange-500 "
+                  <% }else{ %>
+                    class="w-9 h-9 flex items-center justify-center bg-transparent rounded-full overflow-hidden"
+                    <% } %>
+                      >
+                      <img class="h-[90%] w-[90%] rounded-full object-cover"
+                        src="/images/uploads/<%=data.user.profileImage%>" alt="">
+              </a>
+              <% if(data.user.username===user.username ){ %>
+                <a href="/profile">
+                  <p class="text-sm">
+                    <%= data.user.username %>
+                  </p>
+                </a>
+                <% }else{ %>
+                  <a href="/profile/otherUser/<%=data.user.username%>">
+                    <p class="font-medium">
+                      <%=data.user.username%>
+                    </p>
+                  </a>
+                  <% } %>
+                    <h6 class="text-xs opacity-30">1d</h6>
+            </div>
+              <%if(data.type === 'video'){%>
+              <div class="w-full h-full max-h-[500px] relative mt-4 bg-sky-100 overflow-hidden">
+                <video class="h-full w-full object-contain" src="/images/uploads/<%=data.image%>" muted onclick="playStop(this)"></video>
+                <div class="absolute w-full h-full" onclick></div>
+              </div>
+              <%}else{%>
+                <div class="w-full h-full max-h-[500px] mt-4 bg-sky-100 overflow-hidden">
+                <img class="h-full w-full object-contain" src="/images/uploads/<%=data.image%>" alt="">
+              </div>
+              <%}%>
+            <div class="options w-full px-4 flex justify-between items-center text-[1.4rem] cursor-pointer">
+              <div class="flex gap-3 mt-2">
+                <div id="like-<%=data._id%>" onclick="likePost('<%=data._id %>','<%=user._id%>')">
+                  <% if(data.likes.indexOf(user._id)===-1){ %>
+                    <i class="ri-heart-3-line"></i>
+                    <% }else{ %>
+                      <i class="ri-heart-3-fill text-red-600"></i>
+                      <% }%>
+                </div>
+                <a href="/comment/<%=data._id%>"><i class="ri-chat-3-line"></i></a>
+                <i class="ri-share-circle-line"></i>
+              </div>
+              <div id="save-<%=data._id%>" onclick="savePost('<%=data._id %>')">
+                <% if(user.savedPost.indexOf(data._id)===-1){ %>
+                  <i class="ri-bookmark-line"></i>
+                  <% }else{ %>
+                    <i class="ri-bookmark-fill text-white"></i>
+                    <% }%>
+              </div>
+            </div>
+            <a href="/list/q?title=post_likes&id=<%=data._id%>">
+              <h3 class="px-5 text-sm leading-none tracking-tight" id="likes-count-<%=data._id%>">
+                <%= data.likes.length %>
+              </h3>
+            </a>
+            <h2 class="text-white font-light text-sm mt-2"><span class="font-semibold pl-4 pr-2">
+                <%=data.user.username%>
+              </span>
+              <%=data.caption%>
+            </h2>
+            <%if(data.comment.length){%>
+              <p class="px-4 text-sm mt-2 text-zinc-600">View all <%=data.comment.length%> comments</p>
+              <div class="flex px-4 items-center mt-1 gap-4">
+                <h2 class="text-sm">
+                  <%=data.comment[data.comment.length - 1].commentUser.username%>
+                </h2>
+                <p class="text-sm font-light h-fit whitespace-nowrap w-[90%] overflow-hidden">
+                  <%=data.comment[data.comment.length - 1].comment%>
+                </p>
+              </div>
+              <%}%>
+          </div>
+          <% }}) %>
+
+    </div>
+  </div>
+  <script>
+    let play = false;
+    function playStop(elem){
+      if(play){
+        elem.pause();
+        elem.muted = !elem.muted;
+        play = !play;
+      }
+      else{
+        elem.play();
+        elem.muted = !elem.muted;
+        play = !play;
+      }
+    }
+
+    async function likePost(post, user) {
+      const { data } = await axios.get(`/like/post/q?post=${post}`);
+      document.getElementById(`likes-count-${post}`).innerHTML = data.likes;
+      if (data.liked === -1) {
+        document.getElementById(`like-${post}`).innerHTML = `<i class="ri-heart-3-line"></i>`;
+      }
+      else {
+        let data = {
+          user: user,
+          post: post,
+          type: 'post-like'
+        }
+        socket.emit('post_like', data)
+        document.getElementById(`like-${post}`).innerHTML = `<i class="ri-heart-3-fill text-red-600"></i>`;
+      }
+    };
+
+    async function savePost(id) {
+      const { data } = await axios.get(`/save/post/q?post=${id}`);
+      if (data.saved === -1) {
+        document.getElementById(`save-${id}`).innerHTML = `<i class="ri-bookmark-line"></i>`;
+      }
+      else {
+        document.getElementById(`save-${id}`).innerHTML = `<i class="ri-bookmark-fill text-white"></i>`;
+      }
+    }
+  </script>
+  <% include ./partials/footer.ejs %>

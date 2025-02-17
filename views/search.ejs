@@ -1,0 +1,32 @@
+<% include ./partials/header.ejs %>
+  <div class="w-full min-h-screen bg-zinc-900 px-4 py-5">
+    <div class="border-2 border-zinc-800 flex items-center justify-between px-2 py-1 rounded-md">
+        <i class="text-white ri-search-line" name="username"></i>
+        <input class="ml-1 w-full bg-zinc-900 outline-none text-zinc-400" id="search-bar" type="text" placeholder="search username">
+    </div>
+    <div class="users">
+        
+    </div>
+  </div>
+  <script>
+    let search = document.getElementById("search-bar");
+    search.addEventListener('input',async function(){
+    let {data }= await axios.get(`/username/${search.value}`);
+    let clutter = '';
+    data.map((user,index)=>{
+        clutter += `<a href="/profile/otherUser/${user.username}" class="outline-none">
+            <div class="text-white flex items-center gap-2 mt-5">
+                <div class="image w-[11%] h-[11%] overflow-hidden rounded-full bg-sky-100">
+                    <img class="h-full w-full object-cover" src="/images/uploads/${user.profileImage}" alt="">
+                </div>
+                <div class="text">
+                    <h3>${user.username}</h3>
+                    <h4 class="text-xs opacity-30 leading-none">${user.name}</h4>
+                </div>
+            </div>            
+        </a>`
+    });
+    document.getElementsByClassName('users')[0].innerHTML = clutter;
+    })
+  </script>
+<% include ./partials/footer.ejs %>

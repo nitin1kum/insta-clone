@@ -1,0 +1,107 @@
+<% include ./partials/header.ejs %>
+  <div class="w-full min-h-screen bg-zinc-900 text-white py-5">
+      <div class="nav flex justify-between items-center px-4 fixed top-0 z-50 w-full bg-zinc-900 py-2">
+        <h3 class="text-lg"><%=otherUser.username%></h3>
+        <div class="icons flex gap-5">
+          <a href="/upload"><i class="text-[1.4rem] ri-add-box-line"></i></a>
+          <i class="text-[1.4rem] ri-menu-line"></i>
+        </div>
+      </div>
+      <div class="flex justify-between items-center pl-6 pr-6 mt-8">
+        <a <% if(otherUser.story.length){ %>
+          href="/story/<%=otherUser._id%>"
+              class="w-12 h-12 flex items-center justify-center rounded-full overflow-hidden gradient
+              bg-gradient-to-r from-purple-700 to-orange-500 "
+              <% }else{ %>
+                  class="w-12 h-12 flex items-center justify-center bg-transparent rounded-full
+                  overflow-hidden"
+                  <% } %>
+                      >
+                      <img class="h-[93%] w-[93%] rounded-full object-cover"
+                          src="/images/uploads/<%=otherUser.profileImage%>" alt="">
+      </a>
+        <div class="stats flex gap-5 items-center justify-between pointer">
+          <div class="flex flex-col items-center justify-center">
+            <h3><%=otherUser.posts.length%></h3>
+            <h4>Posts</h4>
+          </div>
+          <div class="flex flex-col items-center justify-center">
+            <a href="/list/q?title=follower&id=<%=otherUser._id%>"><h3 id="follower"><%=otherUser.follower.length%></h3></a>
+            <h4>Follower</h4>
+          </div>
+          <div class="flex flex-col items-center justify-center">
+            <a href="/list/q?title=following&id=<%=otherUser._id%>"><h3 id="following"><%=otherUser.following.length%></h3></a>
+            <h4>Following</h4>
+          </div>
+        </div>
+      </div>
+      <div class="dets px-6 mt-5">
+        <h3 class="text-lg mb-1"><%=otherUser.name%></h3>
+        <p class="text-xs tracking-tight opacity-50"><%=otherUser.bio%></p>
+      </div>
+      <div class="px-6 mt-5 flex justify-between">
+          <%if(otherUser.follower.indexOf(user._id) === -1 && user.follower.indexOf(otherUser._id) === -1){ %>
+          <div class="px-3 py-2 bg-sky-600 text-white font-medium text-xs rounded-md follow-btn cursor-pointer" id="follow-btn" onclick="followUser('<%=otherUser._id%>'); followed(this, '<%=otherUser._id%>','<%=user._id%>')">Follow</div>
+          <%}%>
+          <%if(otherUser.follower.indexOf(user._id) === -1 && user.follower.indexOf(otherUser._id) !== -1){%>
+          <div class="px-3 py-2 bg-sky-600 text-white font-medium text-xs rounded-md follow-btn cursor-pointer" id="follow-btn" onclick="followUser('<%=otherUser._id%>'); followed(this, '<%=otherUser._id%>','<%=user._id%>')">Follow Back</div>
+          <%}%>
+          <%if(otherUser.follower.indexOf(user._id) !== -1){%>
+          <div class="px-3 py-2 bg-zinc-800 text-xs rounded-md follow-btn cursor-pointer" id="follow-btn" onclick="followUser('<%=otherUser._id%>'); followed(this, '<%=otherUser._id%>','<%=user._id%>')">Unfollow</div>
+          <%}%>
+        <a class="px-3 py-2 bg-zinc-800 text-xs rounded-md cursor-pointer" href="/send/message/<%=otherUser._id%>">Message</a>
+      </div>
+      <% if(!otherUser.posts.length){ %>
+        <div class="w-full flex justify-center flex-col items-center h-[50vh] gap-3 py-2 mt-5 flex-wrap">
+          <p>No Post Yet.</p>
+        </div>
+      <% } %>
+      <div class="posts px-2 w-full grid grid-cols-3 gap-2 py-2 mt-5 flex-wrap">
+        <% otherUser.posts.map((data,index)=>{ %>
+          <div class="post w-full h-[100px] bg-sky-100 overflow-hidden">
+            <a href='/post/show/q?user=<%=otherUser._id%>&post=<%=data._id%>'>
+              <%if(data.type === "video"){%>
+                <video src="/images/uploads/<%= data.image%>"></video>
+              <%}else{%>
+               <img class="h-full w-full object-cover" src="/images/uploads/<%= data.image%>" alt=""> 
+              <%}%>
+            </a>
+          </div>
+        <% }) %>
+        
+      </div>
+  </div>
+  <script>
+        const button = document.getElementsByClassName('follow-btn')[0];
+        function followed(elem, profileId , userId){
+            if(elem.innerHTML === "Follow" || elem.innerHTML === "Follow Back"){
+                data = {
+                    type: "followed",
+                    profileId: profileId,
+                    userId: userId,
+                }
+                socket.emit("followed" , data )
+            }
+        };
+
+    async function followUser(id){
+      const {data} = await axios.get(`/follow/${id}`);
+      if(data.follow === -1 && data.follow_back === -1){
+        document.getElementById('follow-btn').innerHTML="Follow";
+        document.getElementById('follow-btn').classList.add('bg-sky-600','text-white','font-medium');
+      }
+      if(data.follow === -1 && data.follow_back !== -1){
+        document.getElementById('follow-btn').innerHTML="Follow Back";
+        document.getElementById('follow-btn').classList.add('bg-sky-600','text-white','font-medium');
+      }
+      if(data.follow !== -1){
+        document.getElementById('follow-btn').innerHTML="Unfollow";
+        document.getElementById('follow-btn').classList.remove('bg-sky-600','text-white','font-medium');
+        document.getElementById('follow-btn').classList.add('bg-zinc-800');
+      }
+      document.getElementById('following').innerHTML=data.following;
+      document.getElementById('follower').innerHTML=data.follower;
+    }
+    
+  </script>
+<% include ./partials/footer.ejs %>

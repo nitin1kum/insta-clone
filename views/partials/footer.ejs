@@ -1,0 +1,198 @@
+<% if(footer){ %>
+</div>
+  <div class="footer text-white border-t-[1px] border-gray-400/20 flex justify-between items-center w-full fixed bottom-0 z-[10] bg-zinc-900 px-10 py-3">
+    <a href="/feed"><i class="text-[1.4rem] ri-home-line"></i></a>
+    <a href="/search"><i class="text-[1.4rem] ri-search-line"></i></a>
+    <a href="/upload"><i class="text-[1.4rem] ri-add-box-line"></i></a>
+    <a href="/profile">
+      <div class="w-6 h-6 bg-zinc-300 rounded-full overflow-hidden">
+        <img class="h-full w-full object-cover" src="/images/uploads/<%= user.profileImage %>" alt="">
+      </div>
+    </a>
+  </div>
+  <% } %>
+</div>
+    <script>
+      let notificationTimer = null;
+      if ('<%=user.username%>') {
+        socket.on('followed', data => {
+          if(notificationTimer){
+            clearTimeout(notificationTimer);
+            notificationTimer = null;
+          }
+          let clutter = ''
+          if (data.profile === '<%=user.username%>' && data.user.username != '<%=user.username%>') {
+            clutter = `<div class="flex justify-between my-2 px-4 gap-6 items-center">
+                <div class="flex justify-start items-center gap-4">
+                    <a class="w-12 h-12 flex flex-shrink-0 flex items-center">
+                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                            src="/images/uploads/${data.user.profileImage}" alt="">
+                    </a>
+                    <div class="font-light h-12 overflow-hidden ">
+                        <a class="font-medium" href="/profile/otherUser/${data.user.username}">${data.user.username}</a> has followed you.
+                    </div>
+                </div>
+                <div></div>
+            </div>`
+
+            document.getElementsByClassName('pop-up')[0].innerHTML = clutter + document.getElementsByClassName('pop-up')[0].innerHTML;
+    document.getElementsByClassName('pop-container')[0].classList.remove('left-[9999px]');
+            document.getElementsByClassName('pop-up')[0].style.transform = 'translateX(0)';
+            document.getElementsByClassName('pop-up')[0].style.transform += 'scaleY(1)';
+            notificationTimer = setTimeout(function () {
+              document.getElementsByClassName('pop-up')[0].style.transform = 'scaleY(0)';
+              document.getElementsByClassName('pop-container')[0].classList.add('left-[9999px]');
+            }, 5000)
+          }
+        })
+        
+        
+        socket.on('commented', data => {
+          if(notificationTimer){
+            clearTimeout(notificationTimer);
+            notificationTimer = null;
+          }
+          let clutter = ''
+          if (data.user === '<%=user.username%>'  && data.profile.username != '<%=user.username%>') {
+            clutter = `<div class="flex justify-between my-2 px-4 gap-6 items-center">
+                <div class="flex justify-start itemcenterrt gap-4">
+                    <a class="w-12 h-12 flex flex-shrink-0 flex items-center">
+                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                            src="/images/uploads/${data.profile.profileImage}" alt="">
+                    </a>
+                    <div class="font-light h-12 overflow-hidden ">
+                        <a class="font-medium" href="/profile/otherUser/${data.profile.username}">${data.profile.username}</a><a href="/comment/${data.post._id}"> has commented on your post : ${data.comment}</a>
+                    </div>
+                </div>
+                <a class="flex-shrink-0" href='/post/show/q?user=${data.profile._id}&post=${data.post._id}'>
+                    <img class="h-10 w-10 object-cover" src="/images/uploads/${data.post.image}">
+                </a>
+                    </div>`
+
+            document.getElementsByClassName('pop-up')[0].innerHTML = clutter + document.getElementsByClassName('pop-up')[0].innerHTML;
+            document.getElementsByClassName('pop-container')[0].classList.remove('left-[9999px]');
+            document.getElementsByClassName('pop-up')[0].style.transform = 'translateX(0)';
+            document.getElementsByClassName('pop-up')[0].style.transform += 'scaleY(1)';
+            notificationTimer = setTimeout(function () {
+              document.getElementsByClassName('pop-up')[0].style.transform = 'scaleY(0)';
+              document.getElementsByClassName('pop-container')[0].classList.add('left-[9999px]');
+            }, 5000)
+          }
+        })
+        
+        
+        socket.on('post_like', data => {
+          if(notificationTimer){
+            clearTimeout(notificationTimer);
+            notificationTimer = null;
+          }
+          let clutter = ''
+          if (data.user === '<%=user.username%>' && data.profile.username != '<%=user.username%>') {
+            clutter = `<div class="flex justify-between my-2 px-4 gap-6 items-center">
+                <div class="flex justify-start itemcenterrt gap-4">
+                    <a class="w-12 h-12 flex flex-shrink-0 flex items-center">
+                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                            src="/images/uploads/${data.profile.profileImage}" alt="">
+                    </a>
+                    <div class="font-light h-12 overflow-hidden ">
+                        <a class="font-medium" href="/profile/otherUser/${data.profile.username}">${data.profile.username}</a><a href="/post/show/q?user=${data.profile._id}&post=${data.post._id}"> has liked your post.</a>
+                    </div>
+                </div>
+                <a class="flex-shrink-0" href='/post/show/q?user=${data.profile._id}&post=${data.post._id}'>
+                    <img class="h-10 w-10 object-cover" src="/images/uploads/${data.post.image}">
+                </a>
+                    </div>`
+
+            document.getElementsByClassName('pop-up')[0].innerHTML = clutter + document.getElementsByClassName('pop-up')[0].innerHTML;
+            document.getElementsByClassName('pop-container')[0].classList.remove('left-[9999px]');
+            document.getElementsByClassName('pop-up')[0].style.transform = 'translateX(0)';
+            document.getElementsByClassName('pop-up')[0].style.transform += 'scaleY(1)';
+            notificationTimer = setTimeout(function () {
+              document.getElementsByClassName('pop-up')[0].style.transform = 'scaleY(0)';
+              document.getElementsByClassName('pop-container')[0].classList.add('left-[9999px]');
+            }, 5000)
+          }
+        })
+        
+        
+        socket.on('comment_like', data => {
+          if(notificationTimer){
+            clearTimeout(notificationTimer);
+            notificationTimer = null;
+          }
+          let clutter = ''
+          if (data.user === '<%=user.username%>' && data.profile.username != '<%=user.username%>') {
+            clutter = `<div class="flex justify-between my-2 px-4 gap-6 items-center">
+                <div class="flex justify-start itemcenterrt gap-4">
+                    <a class="w-12 h-12 flex flex-shrink-0 flex items-center">
+                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                            src="/images/uploads/${data.profile.profileImage}" alt="">
+                    </a>
+                    <div class="font-light h-12 overflow-hidden ">
+                        <a class="font-medium" href="/profile/otherUser/${data.profile.username}">${data.profile.username}</a><a href="/comment/${data.post._id}"> has liked your comment : ${data.comment}</a>
+                    </div>
+                </div>
+                <a class="flex-shrink-0" href='/post/show/q?user=${data.profile._id}&post=${data.post._id}'>
+                    <img class="h-10 w-10 object-cover" src="/images/uploads/${data.post.image}">
+                </a>
+                    </div>`
+
+            document.getElementsByClassName('pop-up')[0].innerHTML = clutter + document.getElementsByClassName('pop-up')[0].innerHTML;
+            document.getElementsByClassName('pop-container')[0].classList.remove('left-[9999px]');
+            document.getElementsByClassName('pop-up')[0].style.transform = 'translateX(0)';
+            document.getElementsByClassName('pop-up')[0].style.transform += 'scaleY(1)';
+            notificationTimer = setTimeout(function () {
+              document.getElementsByClassName('pop-up')[0].style.transform = 'scaleY(0)';
+              document.getElementsByClassName('pop-container')[0].classList.add('left-[9999px]');
+            }, 5000)
+          }
+        })
+        
+        
+        socket.on('story_like', data => {
+          if(notificationTimer){
+            clearTimeout(notificationTimer);
+            notificationTimer = null;
+          }
+          console.log(data)
+          let clutter = ''
+          if (data.user === '<%=user.username%>' && data.profile.username != '<%=user.username%>') {
+            clutter = `<div class="flex justify-between my-2 px-4 gap-6 items-center">
+                <div class="flex justify-start itemcenterrt gap-4">
+                    <a class="w-12 h-12 flex flex-shrink-0 flex items-center">
+                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                            src="/images/uploads/${data.profile.profileImage}" alt="">
+                    </a>
+                    <div class="font-light h-12 overflow-hidden ">
+                        <a class="font-medium" href="/profile/otherUser/${data.profile.username}">${data.profile.username}</a><a href="/"> has liked your story.</a>
+                    </div>
+                </div>
+                <a class="flex-shrink-0">
+                  ${data.media_type == "video" ? "<div class='h-10 w-10 bg-black'/>" : `<img class="h-10 w-10 object-cover" src='/story/${data.media}'>`}
+                </a>
+                    </div>`
+
+            document.getElementsByClassName('pop-up')[0].innerHTML = clutter + document.getElementsByClassName('pop-up')[0].innerHTML;
+            document.getElementsByClassName('pop-container')[0].classList.remove('left-[9999px]');
+            document.getElementsByClassName('pop-up')[0].style.transform = 'translateX(0)';
+            document.getElementsByClassName('pop-up')[0].style.transform += 'scaleY(1)';
+            notificationTimer = setTimeout(function () {
+              document.getElementsByClassName('pop-up')[0].style.transform = 'scaleY(0)';
+              document.getElementsByClassName('pop-container')[0].classList.add('left-[9999px]');
+            }, 5000)
+          }
+        })
+
+      }
+
+      document.addEventListener("DOMContentLoaded", function (event) {
+        var scrollpos = localStorage.getItem('scrollpos');
+        if (scrollpos) window.scrollTo(0, scrollpos);
+      });
+      window.onbeforeunload = function (e) {
+        localStorage.setItem("scrollpos", scrollY);
+      }
+    </script>
+    </body>
+
+    </html>

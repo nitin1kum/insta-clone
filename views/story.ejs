@@ -1,0 +1,220 @@
+<% include ./partials/header.ejs %>
+  <div class="w-full h-screen sm:h-[700px] overflow-y-hidden bg-zinc-900 relative text-white flex flex-col">
+    <% if(stories.length){%>
+      <%stories.map((story,index)=>{%>
+        <div class="story-pages h-full w-full flex flex-col justify-between hidden" >
+          <p class="hidden story-id"><%=story._id%></p>
+          <div class="bg-zinc-900 mt-2 text-white h-fit w-full flex relative justify-between items-center py-2 px-4">
+            <div class="absolute inset-0 w-1/2 h-[1px] bg-white loader">
+            </div>
+            <div class="flex gap-4">
+              <img class="h-8 w-8 object-cover rounded-full" src="/images/uploads/<%=story.user.profileImage%>" alt="" />
+              <h2 id="index">
+                <%=story.user.username%>"
+              </h2>
+            </div>
+            <div class="flex items-center justify-center gap-3">
+              <div id="volume" onclick="volume()" <% if(story.media_type==="video" ){ %>
+                class="relative volume"
+                <% }else{ %>
+                  class="relative volume hidden"
+                  <% } %>
+                    >
+                    <i class="ri-volume-mute-line text-2xl"></i>
+              </div>
+              <div>
+                <a href="/feed"> <i class="ri-close-line text-3xl"></i></a>
+              </div>
+            </div>
+          </div>
+          <div class="w-full relative flex-grow-1 h-[calc(100%_-_140px)] min-h-[calc(100%_-_140px)] overflow-hidden px-2 flex flex-col items-center justify-center">
+            <div class="w-full h-full relative my-6" id="story-collection">
+              <%if(story.media_type==="video" ){%>
+                <video class="story w-full h-full object-cover" muted autoplay id="vid">
+                  <source src="/story/<%=story.status_media%>" />
+                </video>
+                <%}else{%>
+                  <img src="/story/<%=story.status_media%>" class="w-full story h-full object-cover " alt="" />
+                  <%}%>
+                  <p class="absolute py-1 bottom-10 bg-gray-400 bg-opacity-50 text-center text-xl w-full"><%=story.status_caption%></p>
+            </div>
+            <div class="grid grid-cols-3 absolute h-[70vh] w-full">
+              <div class="w-full h-full" onclick="previous()"></div>
+              <div class="w-full h-full" onclick="playStop()"></div>
+              <div class="w-full h-full" onclick="next()"></div>
+            </div>
+          </div>
+          <%if(story.user.username !== user.username){%>
+            <div class="flex relative cursor-pointer bottom-1 items-center gap-4 bg-zinc-900 mb-4 flex w-full px-2"
+              method="post">
+              <input
+                class="rounded-full w-full border border-gray-400 py-1 px-4 text-white flex-grow-1 bg-zinc-900 outline-none"
+                type="text" name="message" placeholder="Message" id="comment"/>
+                <button onclick="storyLike(this,'<%=story._id%>','<%=user._id%>')" class="like-btn">
+                <% if(story.status_likes.map(id => id.toString()).indexOf(user._id.toString()) === -1){ %>
+                  <i class="ri-heart-3-line text-2xl"></i>
+                  <% }else{ %>
+                    <i class="ri-heart-3-fill text-2xl text-red-600"></i>
+                  <%  }%>
+                </button>
+              <button type="submit" onclick="handleComment('<%=story.user._id%>','<%=story.username%>')">
+                <i class="ri-send-plane-fill text-2xl text-sky-600" ></i>
+              </button>
+            </div>
+            <%}else{%>
+              <div class="flex relative bottom-1 items-center justify-between gap-4 bg-zinc-900 mb-2 flex w-full px-4">
+                <a href="/list/q?title=views&id=<%=story._id%>"><i class="ri-eye-line mt-1"></i></a>
+                <div class="flex items-center gap-2">
+                  <i class="ri-heart-3-fill text-2xl mt-1 text-red-600"></i>
+                  <a href="/list/q?title=story_likes&id=<%=story._id%>"><p class="text-white text-lg leading-none"><%=story.status_likes.length%></p></a>
+                </div>
+              </div>
+              <%}%>
+        </div>
+        <%})%>
+          <%}%>
+  </div>
+  <script>
+    let storyCollection = document.getElementsByClassName("story-pages");
+    let stories = document.getElementsByClassName("story");
+    let story = document.getElementsByClassName("story-id");
+    let sound = document.getElementsByClassName("volume");
+    let play = true;
+    let currentId = 0;
+    let timer = null;
+
+    async function handleComment(a,b){
+      const value = document.getElementById("comment").value;
+      if(value == "") return;
+
+      story = {
+          name: '<%=user.username%>',
+          message: '<%=user.username%>' + " has commented on your story : " + value
+      }
+      socket.emit('message', story);
+      axios({
+          url: '/send/message',
+          method: 'post',
+          data: {
+              senderid: a,
+              message: story.message,
+              type: "SEND"
+          }
+      }).catch(e => console.log(e))
+      document.getElementById("comment").value = "";
+    }
+
+    function playStop() {
+      if(currentId < 0 || currentId >= storyCollection.length) return;
+      if (stories[currentId].tagName === "VIDEO") {
+        if (play) {
+          stories[currentId].pause();
+        } else {
+          stories[currentId].play();
+        }
+        play = !play;
+      }
+    }
+
+    function volume() {
+      if(currentId < 0 || currentId >= storyCollection.length) return;
+      if (stories[currentId].tagName === "VIDEO") {
+        stories[currentId].muted = !stories[currentId].muted;
+        if (!stories[currentId].muted) {
+          sound[currentId].innerHTML = `<i class="ri-volume-up-line text-2xl"></i>`;
+        } else {
+          sound[currentId].innerHTML = `<i class="ri-volume-mute-line text-2xl"></i>`;
+        }
+      }
+    }
+
+    function showStatus() {
+      if(timer){
+        clearInterval(timer);
+        timer = null;
+      }
+
+      if(currentId < 0 || currentId >= storyCollection.length) return;
+
+      const currentStory = storyCollection[currentId];
+
+      currentStory.classList.remove("hidden");
+
+      if (stories[currentId].tagName === "VIDEO") {
+        stories[currentId].play();
+        stories[currentId].currentTime = 0;
+      }
+
+      timer = setTimeout(() => {
+        storyCollection[currentId].classList.add("hidden");
+
+        if (stories[currentId].tagName === "VIDEO") {
+          stories[currentId].pause();
+        }
+
+        currentId++;
+
+        if (currentId < storyCollection.length) {
+          showStatus();
+        }
+        else {
+          window.location.href = "/story/<%=nextId%>";
+          return;
+        }
+      }, 15000)
+    }
+
+    async function storyLike(elem,story,user){
+      elem.disabled = true;
+      try {
+        axios.get(`/like/story/q?story=${story}`)
+        .then(e =>{
+          if(e.data === "liked"){
+            let data = {
+              user: user,
+              story : story,
+              type: 'story-like'
+            }
+            socket.emit('story_like', data)
+            elem.innerHTML=`<i class="ri-heart-3-fill text-2xl text-red-600"></i>`;
+          }
+          else{
+            elem.innerHTML=`<i class="ri-heart-3-line text-white text-2xl "></i>`;
+          }
+        })
+      } catch (error) {
+        console.log(error)
+      }
+      finally{
+        elem.disabled = false;
+      }
+    }
+
+    function previous() {
+      if(currentId < 0 || currentId >= storyCollection.length) return;
+      storyCollection[currentId].classList.add("hidden");
+      currentId--;
+      if(currentId < 0) {window.location.href = "/story/<%=prevId%>";
+        return;
+      }
+      stop = true;
+      showStatus();
+    }
+
+    function next() {
+      if(currentId < 0 || currentId >= storyCollection.length) return;
+      storyCollection[currentId].classList.add("hidden");
+      currentId++;
+      if(currentId >= storyCollection.length){
+        window.location.href = "/story/<%=nextId%>"
+        return;
+      }
+      stop = true;
+      showStatus();
+    }
+
+    showStatus();
+
+  </script>
+
+  <% include ./partials/footer.ejs %>

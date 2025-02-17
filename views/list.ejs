@@ -1,0 +1,91 @@
+<% include ./partials/header.ejs %>
+    <div class="w-full h-screen sm:h-[700px] bg-zinc-900 text-white py-8 overflow-y-hidden">
+        <div class="flex justify-between items-center px-4 fixed top-0 z-50 w-full py-2 bg-zinc-900">
+            <div class="text-sm text-white" onclick="window.history.back()"><i
+                    class="ri-arrow-left-s-line text-2xl"></i></div>
+            <h2 class="leading-none text-sm">
+                <%=title%>
+            </h2>
+            <a class="text-sm flex items-center" href="/profile"><i class="ri-arrow-right-s-line text-2xl pt-1"></i></a>
+        </div>
+        <% list.map((data,index)=>{ %>
+            <div class="follower-list">
+                <div class="flex justify-between my-6 px-4 items-center">
+                    <div class="flex justify-start items-center gap-4">
+                        <a <% if(data.story.length){ %>
+                            href="/story/<%=data._id%>"
+                                class="w-12 h-12 flex items-center justify-center rounded-full overflow-hidden gradient
+                                bg-gradient-to-r from-purple-700 to-orange-500 "
+                                <% }else{ %>
+                                    class="w-12 h-12 flex items-center justify-center bg-transparent rounded-full
+                                    overflow-hidden"
+                                    <% } %>
+                                        >
+                                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                                            src="/images/uploads/<%=data.profileImage%>" alt="">
+                        </a>
+                        <div class="flex flex-col justify-center ">
+                            <a href="/profile/otherUser/<%=data.username%>">
+                                <p>
+                                    <%=data.username%>
+                                </p>
+                            </a>
+                            <p class="text-sm text-gray-600">
+                                <%=data.name%>
+                            </p>
+                        </div>
+                    </div>
+                    <% if(data.username !==user.username){ %>
+                        <%if(data.follower.indexOf(user._id)===-1 && user.follower.indexOf(data._id)===-1){ %>
+                            <div class="px-3 py-2 bg-sky-600 text-white font-medium text-xs rounded-md follow-btn"
+                                id="follow" onclick="followUser('<%=data._id%>',this); followed(this, '<%=data._id%>','<%=user._id%>')">Follow
+                            </div>
+                            <%}%>
+                                <%if(data.follower.indexOf(user._id)===-1 && user.follower.indexOf(data._id) !==-1){%>
+                                    <div class="px-3 py-2 bg-sky-600 text-white font-medium text-xs rounded-md follow-btn"
+                                        id="follow" onclick="followUser('<%=data._id%>',this); followed(this, '<%=data._id%>','<%=user._id%>')">
+                                        Follow Back</div>
+                                    <%}%>
+                                        <%if(data.follower.indexOf(user._id) !==-1){%>
+                                            <div class="px-3 py-2 bg-zinc-800 text-xs rounded-md follow-btn"
+                                                onclick="followUser('<%=data._id%>',this); followed(this, '<%=data._id%>','<%=user._id%>')">
+                                                Unfollow</div>
+                                            <%}%>
+                                                <%}%>
+                </div>
+            </div>
+            <% }) %>
+
+    </div>
+    <script>
+        const button = document.getElementsByClassName('follow-btn')[0];
+        function followed(elem, profileId , userId){
+            if(elem.innerHTML === "Follow" || elem.innerHTML === "Follow Back"){
+                data = {
+                    type: "followed",
+                    profileId: profileId,
+                    userId: userId,
+                }
+                socket.emit("followed" , data )
+            }
+        };
+
+
+        async function followUser(id, elem) {
+            const { data } = await axios.get(`/follow/${id}`);
+            if (data.follow === -1 && data.follow_back === -1) {
+                elem.innerHTML = "Follow";
+                elem.className = 'px-3 py-2 bg-sky-600 text-white font-medium text-xs rounded-md follow-btn';
+            }
+            if (data.follow === -1 && data.follow_back !== -1) {
+                elem.innerHTML = "Follow Back";
+                elem.className = 'px-3 py-2 bg-sky-600 text-white font-medium text-xs rounded-md follow-btn';
+            }
+            if (data.follow !== -1) {
+                elem.innerHTML = "Unfollow";
+                elem.className = 'px-3 py-2 bg-zinc-800 text-xs rounded-md follow-btn';
+            }
+        }
+
+    </script>
+    <% include ./partials/footer.ejs %>

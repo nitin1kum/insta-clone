@@ -1,0 +1,131 @@
+<% include ./partials/header.ejs %>
+<div class="w-full min-h-[700px] bg-zinc-900 relative text-white flex flex-col">
+  <div
+    class="bg-zinc-900 text-white h-fit w-full flex justify-center items-center py-2 px-6 fixed top-0 py-4 bg-zinc-900 z-50"
+  >
+    <div class="absolute left-2 pointer" onclick="window.history.back()">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke-width="1.5"
+        stroke="currentColor"
+        class="w-6 h-6"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M15.75 19.5L8.25 12l7.5-7.5"
+        />
+      </svg>
+    </div>
+    <div>Comments</div>
+  </div>
+
+  <div class="comment-section py-4 px-2 my-6 sm:h-[580px] overflow-y-scroll">
+  <% comment.reverse().map((data,index)=>{ %>
+    <div class="comments w-full h-fit py-2 bg-zinc-900 flex items-start gap-4">
+      <div class="bg-sky-600 w-10 h-9 mt-2 rounded-full overflow-hidden">
+        <img
+          class="w-full h-full object-cover"
+          src="/images/uploads/<%=data.commentUser.profileImage%>"
+          alt=""
+        />
+      </div>
+      <div class="flex gap-8 justify-between w-full items-start">
+        <div class="w-full">
+          <% if(data.commentUser.username===user.username ){ %>
+          <a href="/profile">
+            <p class="font-medium"><%=data.commentUser.username%></p>
+          </a>
+          <% }else{ %>
+          <a href="/profile/otherUser/<%=data.commentUser.username%>">
+            <p class="font-medium"><%=data.commentUser.username%></p>
+          </a>
+          <% } %>
+          <p class="text-sm"><%=data.comment%></p>
+        </div>
+        <div>
+          <div
+            id="comment-<%=data._id%>"
+            onclick="likeComment('<%=data._id%>','<%=user._id%>')"
+          >
+            <% if(data.likes.indexOf(user._id)===-1){ %>
+            <i class="ri-heart-3-line pr-4"></i>
+            <% }else{ %>
+            <i class="ri-heart-3-fill text-red-600 pr-4"></i>
+            <% }%>
+          </div>
+          <a href="/list/q?title=comment_likes&id=<%=data._id%>"
+            ><div id="comment-<%=data._id%>-likes" class="pl-1">
+              <%=data.likes.length%>
+            </div></a
+          >
+        </div>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+</div>
+<div class="fixed bottom-[60.6px] bg-zinc-900 flex w-full px-1 gap-2">
+  <input
+    class="rounded-full w-full border border-gray-400 py-2 px-4 text-white flex-grow-1 bg-zinc-900 outline-none"
+    type="text"
+    name="comment"
+    placeholder="Comment"
+    id="comment"
+  />
+  <button
+    type="button"
+    class="py-2 px-4 bg-sky-600 text-white font-medium w-fit rounded-lg"
+    onclick="comment(this,'<%=post._id%>','<%=user._id%>')"
+  >
+    Post
+  </button>
+</div>
+<script>
+  async function comment(e, post, user) {
+    if(e.value == "") return;
+    try {
+      await axios({
+        method: "post",
+        url: "/comment/post/<%=post._id%>",
+        data: { comment: document.getElementById("comment").value },
+      });
+      let comment = document.getElementById("comment").value;
+      data = {
+        user: user,
+        post: post,
+        comment: comment,
+        type: "comment",
+      };
+
+      socket.emit("commented", data);
+      this.value = "";
+      window.location.reload();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async function likeComment(comment, user) {
+    const { data } = await axios.get(`/like/comment/${comment}`);
+    document.getElementById(`comment-${comment}-likes`).innerHTML = data.likes;
+    if (data.liked === -1) {
+      document.getElementById(
+        `comment-${comment}`
+      ).innerHTML = `<i class="ri-heart-3-line pr-4"></i>`;
+    } else {
+      let data = {
+        user: user,
+        comment: comment,
+        type: "comment-like",
+      };
+      socket.emit("comment_like", data);
+      document.getElementById(
+        `comment-${comment}`
+      ).innerHTML = `<i class="ri-heart-3-fill text-red-600 pr-4"></i>`;
+    }
+  }
+</script>
+<% include ./partials/footer.ejs %>

@@ -1,0 +1,154 @@
+<% include ./partials/header.ejs %>
+    <div class="w-full h-screen sm:h-[700px] bg-zinc-900 text-white py-6 overflow-y-hidden">
+        <div class="flex justify-between items-center px-4 z-50 top-0 fixed bg-zinc-900 w-full py-2">
+            <div class="text-sm text-white" onclick="window.history.back()"><i
+                    class="ri-arrow-left-s-line text-2xl"></i></div>
+            <h2 class="leading-none text-sm">
+                Notifications
+            </h2>
+            <div></div>
+        </div>
+        <div class="h-[calc(100%-57.6px)] w-full">
+            <div class="notification h-full overflow-y-scroll">
+                <%if(notifications){%>
+                    <% notifications.map((data,index)=>{%>
+                        <%if(data.type === "post-like"){%>
+                            <div class="flex justify-between my-6 px-4 gap-6 items-center">
+                                <div class="flex justify-start items-start gap-4">
+                                    <a class="w-12 h-12 flex flex-shrink-0 flex items-center">
+                                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                                            src="/images/uploads/<%=data.messageData[0].profileData[0].profileImage%>" alt="">
+                                    </a>
+                                    <div class="font-light ">
+                                        <a class="font-medium line-clamp-2" href="/profile/otherUser/<%=data.messageData[0].profileData[0].username%>"><%=data.messageData[0].profileData[0].username%></a><a class="line-clamp-1 text-sm" href="/post/show/q?user=<%=data.messageData[0].profileData[0]._id%>&post=<%=data.messageData[1].postData[0]._id%>"> has liked your post.</a>
+                                    </div>
+                                </div>
+                                <a class="flex-shrink-0" href='/post/show/q?user=<%=data.messageData[0].profileData[0]._id%>&post=<%=data.messageData[1].postData[0]._id%>'>
+                                    <img class="h-10 w-10 object-cover" src="/images/uploads/<%=data.messageData[1].postData[0].image%>">
+                                </a>
+                            </div>
+                    <%}%>
+                        <%if(data.type === "comment-like"){%>
+                            <div class="flex justify-between my-6 px-4 gap-6 items-center">
+                                <div class="flex justify-start items-start gap-4">
+                                    <a class="w-12 h-12 flex flex-shrink-0 flex items-center">
+                                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                                            src="/images/uploads/<%=data.messageData[0].profileData[0].profileImage%>" alt="">
+                                    </a>
+                                    <div class="font-light ">
+                                        <a class="font-medium line-clamp-2" href="/profile/otherUser/<%=data.messageData[0].profileData[0].username%>"><%=data.messageData[0].profileData[0].username%></a><a class="line-clamp-1 text-sm" href="/comment/<%=data.commentPost[0]._id%>">has liked your comment : <%=data.messageData[1].commentData[0].comment%></a>
+                                    </div>
+                                </div>
+                                <a class="flex-shrink-0" href='/post/show/q?user=<%=data.messageData[0].profileData[0]._id%>&post=<%=data.commentPost[0]._id%>'>
+                                    <img class="h-10 w-10 object-cover" src="/images/uploads/<%= data.commentPost[0].image%>">
+                                </a>
+                            </div>
+                    <%}%>
+                        <%if(data.type === "comment"){%>
+                            <div class="flex justify-between my-6 px-4 gap-6 items-center">
+                                <div class="flex justify-start items-start gap-4">
+                                    <a class="w-12 h-12 flex flex-shrink-0 flex items-center">
+                                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                                            src="/images/uploads/<%=data.messageData[0].profileData[0].profileImage%>" alt="">
+                                    </a>
+                                    <div class="font-light ">
+                                        <a class="font-medium line-clamp-2" href="/profile/otherUser/<%=data.messageData[0].profileData[0].username%>"><%=data.messageData[0].profileData[0].username%></a><a class="line-clamp-1 text-sm" href="/comment/<%=data.messageData[1].postData[0]._id%>"> has commented on your post : <%=data.comment%></a>
+                                    </div>
+                                </div>
+                                <a class="flex-shrink-0" href='/post/show/q?user=<%=data.messageData[0].profileData[0]._id%>&post=<%=data.messageData[1].postData[0]._id%>'>
+                                    <img class="h-10 w-10 object-cover" src="/images/uploads/<%=data.messageData[1].postData[0].image%>">
+                                </a>
+                            </div>
+                    <%}%>
+                        <%if(data.type === "followed"){%>
+                            <div class="flex justify-between my-6 px-4 gap-6 items-center">
+                                <div class="flex justify-start items-start gap-4">
+                                    <a class="w-12 h-12 flex flex-shrink-0 flex items-center">
+                                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                                            src="/images/uploads/<%=data.messageData[0].profileData[0].profileImage%>" alt="">
+                                    </a>
+                                    <div class="font-light ">
+                                        <a class="font-medium line-clamp-2" href="/profile/otherUser/<%=data.messageData[0].profileData[0].username%>"><%=data.messageData[0].profileData[0].username%></a> has followed you
+                                    </div>
+                                </div>
+                                <%if(user.following.indexOf(data.messageData[0].profileData[0]._id) === -1){%>
+                                <div class="px-3 py-2 bg-sky-600 text-white font-medium white-space-nowrap text-xs rounded-md follow-btn"
+                                   onclick="followUser(this , '<%=data.messageData[0].profileData[0]._id%>', '<%=user._id%>')">
+                                   Follow Back
+                                </div>  
+                                    
+                                   <%}else{%>
+                                    <div class="px-3 py-2 bg-zinc-800 text-xs rounded-md follow-btn"
+                                   onclick="followUser(this , '<%=data.messageData[0].profileData[0]._id%>', '<%=user._id%>')">
+                                    Unfollow
+                                    </div>
+                                   <%}%>
+                            </div>
+                    <%}%>
+                        <%if(data.type === "story-like"){%>
+                            <% if(data.messageData[1].storyData[0].media_type === "video"){ %>
+                            <div class="flex justify-between my-6 px-4 gap-6 items-center">
+                                <div class="flex justify-start items-start gap-4">
+                                    <a class="w-12 h-12 flex flex-shrink-0 flex items-center">
+                                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                                            src="/images/uploads/<%=data.messageData[0].profileData[0].profileImage%>" alt="">
+                                    </a>
+                                    <div class="font-light ">
+                                        <a class="font-medium line-clamp-2" href="/profile/otherUser/<%=data.messageData[0].profileData[0].username%>"><%=data.messageData[0].profileData[0].username%></a> has liked your story.
+                                    </div>
+                                </div>
+                                <a href="/story/<%=user._id%>">
+                                    <video class="h-10 w-10 object-cover" src="/story/<%=data.messageData[1].storyData[0].status_media%>"></video>
+                                </a>
+                            </div>
+                        <% }else{ %>
+                            <div class="flex justify-between my-6 px-4 gap-6 items-center">
+                                <div class="flex justify-start items-start gap-4">
+                                    <a class="w-12 h-12 flex flex-shrink-0 flex items-center">
+                                        <img class="h-[90%] w-[90%] rounded-full object-cover"
+                                            src="/images/uploads/<%=data.messageData[0].profileData[0].profileImage%>" alt="">
+                                    </a>
+                                    <div class="font-light ">
+                                        <a class="font-medium line-clamp-2" href="/profile/otherUser/<%=data.messageData[0].profileData[0].username%>"><%=data.messageData[0].profileData[0].username%></a><a class="line-clamp-1 text-sm" href="/list/q?title=story_likes&id=<%=data.messageData[1].storyData[0]._id%>"> has liked your story.</a>
+                                    </div>
+                                </div>
+                                <a class="flex-shrink-0" href="/story/<%=user._id%>">
+                                    <img class="h-10 w-10 object-cover" src="/story/<%=data.messageData[1].storyData[0].status_media%>">
+                                </a>
+                            </div>
+                        
+                    <%}}%>
+                    <%})%>
+                    
+                <%}%>
+            </div>
+        </div>
+
+    </div>
+    <script>
+
+        async function followUser(elem, profile , user) {
+            const { data } = await axios.get(`/follow/${profile}`);
+            if(elem.innerText === "Follow" || elem.innerText === "Follow Back"){
+                let newData = {
+                    type: "followed",
+                    profileId: profile,
+                    userId: user,
+                }
+                socket.emit("followed" , newData )
+            }
+            if (data.follow === -1 && data.follow_back === -1) {
+                elem.innerText = "Follow";
+                elem.className = 'px-3 py-2 bg-sky-600 text-white font-medium text-xs rounded-md follow-btn';
+            };
+            if (data.follow === -1 && data.follow_back !== -1) {
+                elem.innerText = "Follow Back";
+                elem.className = 'px-3 py-2 bg-sky-600 text-white font-medium text-xs rounded-md follow-btn';
+            };
+            if (data.follow !== -1) {
+                elem.innerText = "Unfollow";
+                elem.className = 'px-3 py-2 bg-zinc-800 text-xs rounded-md follow-btn';
+            };
+        }
+    </script>
+    <% include ./partials/footer.ejs %>

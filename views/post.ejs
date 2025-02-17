@@ -1,0 +1,108 @@
+<% include ./partials/header.ejs %>
+<div class="bg-zinc-900 min-h-screen w-full text-white py-10 pt-16">
+    <div class="flex justify-between mb-5 py-2 items-center px-4 w-full fixed top-0 py-2 bg-zinc-900 z-50">
+        <i class="ri-arrow-left-s-line text-2xl" onclick="window.history.back()"></i>
+        <a class="text-base" href="/feed"><i class="ri-home-line"></i> home</a>
+      </div>
+        <div class="title px-4 flex justify-between items-center  bg-zinc-900">
+          <div class="flex gap-2 items-center">
+            <a <% if(userData.story.length){ %>
+              href="/story/<%=userData._id%>"
+                  class="w-10 h-10 flex items-center justify-center rounded-full overflow-hidden gradient
+                  bg-gradient-to-r from-purple-700 to-orange-500 "
+                  <% }else{ %>
+                      class="w-10 h-10 flex items-center justify-center bg-transparent rounded-full
+                      overflow-hidden"
+                      <% } %>
+                          >
+                          <img class="h-[90%] w-[90%] rounded-full object-cover"
+                              src="/images/uploads/<%=userData.profileImage%>" alt="">
+          </a>
+            <% if( userData.username  === user.username ){ %>
+              <a href="/profile"><p class="text-sm"><%= userData.username %></p></a>
+          <% }else{ %>
+              <a href="/profile/otherUser/<%=userData.username%>"><p class="font-medium"><%= userData.username %></p></a>
+          <% } %>
+            <h4 class="text-sm"></h4>
+            <h6 class="text-xs opacity-30">1d</h6>
+          </div>
+          <% if(user.username === userData.username){ %>
+            <a href="/delete/<%=post._id%>"><div class="bg-sky-400 text-white font-medium py-2 px-4 rounded-lg">Delete</div></a>
+          <% } %>
+          
+        </div>
+        <%if(post.type === 'video'){%>
+          <div class="w-full max-h-[600px] mt-4 bg-sky-100 overflow-hidden">
+            <video class="h-full w-full object-contain" src="/images/uploads/<%=post.image%>"  muted onclick="playStop(this)"></video>
+          </div>
+          <%}else{%>
+            <div class="w-full max-h-[600px] mt-4 bg-sky-100 overflow-hidden">
+            <img class="h-full w-full object-contain" src="/images/uploads/<%=post.image%>" alt="">
+          </div>
+          <%}%>
+        <div class="options w-full px-4 flex justify-between items-center text-[1.4rem]">
+          <div class="flex gap-3 mt-2">
+            <div id="like-post" onclick="likePost('<%=post._id %>','<%=user._id %>')">
+              <% if(post.likes.indexOf(user._id) === -1){ %>
+              <i class="ri-heart-3-line"></i>
+              <% }else{ %>
+                <i class="ri-heart-3-fill text-red-600"></i>
+              <%  }%>
+            </div>
+            <a href="/comment/<%=post._id%>"><i class="ri-chat-3-line"></i></a>
+            <i class="ri-share-circle-line"></i>
+          </div>
+          <div id="save-<%=post._id%>" onclick="savePost('<%=post._id %>')">
+            <% if(user.savedPost.indexOf(post._id) === -1){ %>
+              <i class="ri-bookmark-line"></i>
+              <% }else{ %>
+                <i class="ri-bookmark-fill text-white"></i>
+              <%  }%>
+          </div>
+        </div>
+        <a href="/list/q?title=post_likes&id=<%=post._id%>"><h3 class="px-5  text-sm leading-none tracking-tight" id="like-show"><%=post.likes.length%></h3></a>
+        <h2 class="text-white font-light text-sm mt-2"><span class="font-semibold pl-4 pr-2"><%=userData.username%></span><%=post.caption%></h2>
+</div>
+<script>
+      let play = false;
+    function playStop(elem){
+      if(play){
+        elem.pause();
+        elem.muted = !elem.muted;
+        play = !play;
+      }
+      else{
+        elem.play();
+        elem.muted = !elem.muted;
+        play = !play;
+      }
+    }
+
+  async function likePost(post,user){
+  const {data} = await axios.get(`/like/post/q?post=${post}`);
+  document.getElementById('like-show').innerHTML=data.likes;
+    if(data.liked === -1){
+      document.getElementById('like-post').innerHTML=`<i class="ri-heart-3-line"></i>`;
+    }
+    else{
+      let data = {
+          user: user,
+          post: post,
+          type: 'post-like'
+        }
+        socket.emit('post_like', data)
+      document.getElementById('like-post').innerHTML=`<i class="ri-heart-3-fill text-red-600"></i>`;
+    }
+  }
+
+  async function savePost(id){
+    const {data} = await axios.get(`/save/post/q?post=${id}`);
+      if(data.saved === -1){
+        document.getElementById(`save-${id}`).innerHTML=`<i class="ri-bookmark-line"></i>`;
+      }
+      else{
+        document.getElementById(`save-${id}`).innerHTML=`<i class="ri-bookmark-fill text-white"></i>`;
+      }
+    }
+</script>
+<% include ./partials/footer.ejs %>

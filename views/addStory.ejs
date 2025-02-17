@@ -1,0 +1,46 @@
+<% include ./partials/header.ejs %>
+  <div class="w-full h-screen sm:h-[700px] overflow-y-scroll bg-zinc-900 text-white py-5 overflow-y-hidden">
+    <div class="flex justify-between items-center px-4 fixed top-0 py-2 bg-zinc-900 z-50 w-full">
+      <a class="text-sm text-white" href="/feed"><i class="ri-arrow-left-s-line text-2xl"></i></a>
+      <h2 class="leading-none text-sm">Upload Post</h2>
+      <a class="text-sm flex items-center" href="/profile"><i class="ri-arrow-right-s-line text-2xl pt-1"></i></a>
+    </div>
+    <div class="flex flex-col w-full h-screen px-2 items-center gap-2 mt-8" >
+      <div id="img-url" class="flex h-[600px] my-4 w-full justify-center items-center">
+        <div class="image w-20 h-20 rounded-full border-2 overflow-hidden border-zinc-800 flex items-center justify-center">
+          <img class="h-full w-full object-cover" src="/images/png-clipart-camera-computer-icons-graphy-camera-icon-camera-lens-camera-icon.png"  alt="">
+        </div>
+      </div>
+      <button id="select-media" class="text-blue-500 capitalize">select media</button>
+      <form id="uploadform" action="/upload/story/" class="w-full px-6 py-3 mt-10 " enctype="multipart/form-data" method="post">
+        <input hidden type="file" name="story-image" id="create-post" required onchange="openFile(this)">
+        <textarea class="px-2 py-1 w-full bg-zinc-900 border-2 h-20 border-zinc-800 resize-none rounded-md outline-none" name="story_caption" placeholder="Write a caption..."></textarea>
+        <input class="w-full px-2 py-2 bg-blue-500 rounded-md cursor-pointer mt-2" type="submit" value="Post">
+    </form>
+    </div>
+    
+  </div>
+
+  <script>
+    document.querySelector("#select-media")
+    .addEventListener("click", function(){
+        document.querySelector("#uploadform input").click();
+    });
+
+    function openFile(input){
+     let type = input.files[0].type;
+     type = type.split('/')[0];
+     if(type === 'video'){
+         if(input.files[0].size < 5000000){
+             document.getElementById('img-url').innerHTML=`<video class="h-full w-full object-cover" src='${(window.URL ? URL : webkitURL).createObjectURL(input.files[0])}' autoplay controls muted alt=""></video>`
+         }
+         else{
+             document.getElementById('img-url').innerHTML=`<p>Size should be less than 25MB.</p>`
+         }
+     }else{
+         document.getElementById('img-url').innerHTML=`<img class="h-full w-full object-cover" src='${(window.URL ? URL : webkitURL).createObjectURL(input.files[0])}'  alt="">`
+     }
+       document.getElementById('uploadform').action=`/upload/story/${type}` 
+    }
+  </script>
+  <% include ./partials/footer.ejs %>

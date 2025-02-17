@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Document</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.6.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        *::-webkit-scrollbar{
+            display: none;
+        }
+        *{
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        .no-scrollbar::-webkit-scrollbar{
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+
+<body class="w-full relative h-screen bg-zinc-800 flex items-center justify-center">
+    <img class="w-[360px] hidden sm:block h-[720px] absolute top-1/2 -translate-y-1/2 mx-auto inset-0" src="/images/main.png" alt="">
+    <div class="wrapper no-scrollbar relative w-full h-full sm:w-[331px] sm:h-[698px] sm:translate-x-[1px] overflow-hidden sm:rounded-[2.8rem]">
+    <div class="w-full h-fit absolute top-0 flex justify-center items-center z-[999] py-2 pop-container left-[9999px]">
+        <a href="/notification"
+            class="pop-up bg-zinc-800 relative rounded-lg w-[95%] scale-y-0 text-white overflow-y-hidden translate-x-[0] origin-top transition-all duration-500 h-16 z-50">
+        </a>
+    </div>
+    <script>
+        let socket = io();
+        let popUp = document.getElementsByClassName('pop-up')[0];
+        let dimension = popUp.getBoundingClientRect();
+        function movePopUp(event) {
+            popUp.style.left = event.touches[0].clientX - dimension.left + 9999 -dimension.width/2 + 'px';
+            let pos = parseInt(popUp.style.left, 10)
+            if (pos < -window.innerWidth/2){
+                popUp.classList.add('transition-all','duration-500');
+                popUp.style.transform = 'translateX(-200%)';
+                document.body.removeEventListener('touchmove', movePopUp, true);
+                document.getElementsByClassName('pop-container')[0].classList.add('left-[9999px]');
+            }
+            else if (pos > window.innerWidth/2) {
+                popUp.classList.add('transition-all','duration-500');
+                popUp.style.transform = 'translateX(200%)';
+                document.body.removeEventListener('touchmove', movePopUp, true);
+                document.getElementsByClassName('pop-container')[0].classList.add('left-[9999px]');
+            }
+        }
+
+        popUp.addEventListener('touchstart', (e) => {
+            popUp.classList.remove('transition-all','duration-500');
+            document.body.addEventListener('touchmove', movePopUp, true);
+        })
+
+        popUp.addEventListener('touchend', (e) => {
+            let pos = parseInt(popUp.style.left, 10)
+            if (pos > -dimension.width/2 && pos < dimension.width/2) {
+                popUp.style.transform = 'translateX(0)';
+                popUp.classList.add('transition-all','duration-500');   
+                document.body.removeEventListener('touchmove', movePopUp, true);
+            }
+            popUp.style.left = 0;
+            document.getElementsByClassName('pop-container')[0].classList.add('left-[9999px]');
+        })
+    </script>
+    <div class="relative no-scrollbar h-full w-full overflow-hidden overflow-y-scroll bg-zinc-900">
